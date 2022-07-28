@@ -1,4 +1,4 @@
-from requests import post
+from requests import post, get
 
 from twitch.conf import credentials_from_config_file
 from twitch.constants import (
@@ -68,6 +68,21 @@ class TwitchHelix(object):
             raise TwitchOAuthException(response["message"])
         else:
             raise TwitchOAuthException()
+
+    def validate_token(self):
+        if not self._oauth_token:
+            raise TwitchOAuthException("No OAuth token present.")
+
+        headers = {
+            "Authorization": f"Bearer {self._oauth_token}",
+        }
+        response = get(f'{BASE_OAUTH_URL}/validate', headers=headers)
+        status_code = response.status_code
+        if status_code != 401:
+            return True
+        else:
+            return False
+
 
     def get_streams(
         self,
